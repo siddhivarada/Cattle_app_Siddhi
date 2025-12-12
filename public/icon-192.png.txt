@@ -1,0 +1,3 @@
+# PWA icons should be actual PNG files
+# For production, replace with real 192x192 and 512x512 PNG icons
+# You can generate them from: https://www.pwabuilder.com/imageGenerator
