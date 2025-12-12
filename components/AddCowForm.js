@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Upload } from 'lucide-react';
 
 export default function AddCowForm({ onAdd }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +12,7 @@ export default function AddCowForm({ onAdd }) {
     imageUrl: '',
     notes: '',
   });
+  const [imagePreview, setImagePreview] = useState(null);
   
   const cowImageUrls = [
     '/cow-default.jpg',
@@ -20,6 +21,45 @@ export default function AddCowForm({ onAdd }) {
     'https://images.unsplash.com/photo-1551844931-59311cc83885?w=400',
     'https://images.unsplash.com/photo-1589461229291-3dad3327fec3?w=400',
   ];
+  
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be less than 5MB');
+        return;
+      }
+
+      // Read file and convert to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result;
+        setFormData({
+          ...formData,
+          imageUrl: base64String,
+        });
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUrlChange = (e) => {
+    setFormData({
+      ...formData,
+      imageUrl: e.target.value,
+    });
+    setImagePreview(null);
+  };
+
+  const clearImage = () => {
+    setFormData({
+      ...formData,
+      imageUrl: '',
+    });
+    setImagePreview(null);
+  };
   
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -41,6 +81,7 @@ export default function AddCowForm({ onAdd }) {
       imageUrl: '',
       notes: '',
     });
+    setImagePreview(null);
     setIsOpen(false);
   };
   
@@ -119,16 +160,64 @@ export default function AddCowForm({ onAdd }) {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL (optional)
+                Image
               </label>
-              <input
-                type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Leave blank for random cow image"
-              />
+              
+              {/* Image Upload Section */}
+              <div className="space-y-3">
+                {/* File Upload (Mobile & Desktop) */}
+                <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
+                  <div className="text-center">
+                    <Upload size={24} className="mx-auto text-green-600 mb-1" />
+                    <span className="text-sm text-gray-600">Click to upload or drag image</span>
+                    <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF up to 5MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-40 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* OR Divider */}
+                <div className="relative flex items-center">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="px-3 text-xs text-gray-500">OR</span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                {/* URL Input */}
+                <input
+                  type="url"
+                  value={formData.imageUrl && !imagePreview ? formData.imageUrl : ''}
+                  onChange={handleUrlChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                  placeholder="Or paste image URL here"
+                  disabled={!!imagePreview}
+                />
+                <p className="text-xs text-gray-500">
+                  {imagePreview ? '✓ Image uploaded' : 'Leave blank for random cow image'}
+                </p>
+              </div>
             </div>
             
             <div>
